@@ -1,9 +1,10 @@
 from sqlmodel import SQLModel, Field
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from enum import Enum
 import uuid
 from datetime import datetime
 from sqlalchemy import TIMESTAMP, func
+from sqlalchemy.orm import validates
 
 
 class UserRole(str, Enum):
@@ -18,6 +19,12 @@ class UserBase(SQLModel):
     role: UserRole = Field(nullable = False, default = UserRole.MEMBER)
     is_active: bool = Field(nullable = False, default = True)
 
+    @field_validator("full_name", "email", "phone", mode="before")
+    @classmethod
+    def lower_input(cls, v):
+        if isinstance(v, str):
+            return v.lower().strip()
+        return v
 
 class User(UserBase, table = True):
     __tablename__ = "users"
